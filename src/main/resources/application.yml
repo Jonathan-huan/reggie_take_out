@@ -18,3 +18,6 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
+
+reggie:
+  path: G:\IDEA\myProjects\reggie_take_out\src\main\resources\imgs\
