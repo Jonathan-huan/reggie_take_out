@@ -89,7 +89,7 @@ public class DishController {
     }
 
     @GetMapping("/list")
-    public R<List<Dish>> list(Dish dish){
+    public R<List<DishDto>> list(Dish dish){
         //构造查询条件
         LambdaQueryWrapper<Dish> queryWrapper=new LambdaQueryWrapper<>();
         //添加条件
@@ -98,6 +98,17 @@ public class DishController {
         //添加排序条件
         queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         List<Dish> list = dishService.list(queryWrapper);
-        return R.success(list);
+
+
+        List<DishDto> dishDtoList= list.stream().map((item)->{
+            DishDto dishDto=new DishDto();
+            BeanUtils.copyProperties(item,dishDto);
+            LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper=new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(DishFlavor::getDishId,dishDto.getId());
+            List<DishFlavor> flavors = dishFlavorService.list(lambdaQueryWrapper);
+            dishDto.setFlavors(flavors);
+            return dishDto;
+        }).collect(Collectors.toList());
+        return R.success(dishDtoList);
     }
 }
