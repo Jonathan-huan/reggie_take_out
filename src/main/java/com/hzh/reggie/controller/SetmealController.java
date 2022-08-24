@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,12 +78,13 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache",key = "'setmeal_'+#setmealDto.categoryId+'_'+#setmealDto.status")
     public R<String> save(@RequestBody SetmealDto setmealDto){
         log.info("套餐信息：{}",setmealDto.toString());
         setmealService.saveWithDishes(setmealDto);
-        //清理所有套餐的缓存数据
-        Set keys = redisTemplate.keys("setmeal_*");
-        redisTemplate.delete(keys);
+//        //清理所有套餐的缓存数据
+//        Set keys = redisTemplate.keys("setmeal_*");
+//        redisTemplate.delete(keys);
         return R.success("新增套餐成功");
     }
 
@@ -102,13 +105,14 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmealCache",key = "'setmeal_'+#setmeal.categoryId+'_'+#setmeal.status")
     public R<List<Setmeal>> list(Setmeal setmeal){
         List<Setmeal> list=null;
-        String key="setmeal_"+setmeal.getCategoryId()+"_"+setmeal.getStatus();
-        list= (List<Setmeal>) redisTemplate.opsForValue().get(key);
-        if(list!=null){
-            return R.success(list);
-        }
+//        String key="setmeal_"+setmeal.getCategoryId()+"_"+setmeal.getStatus();
+//        list= (List<Setmeal>) redisTemplate.opsForValue().get(key);
+//        if(list!=null){
+//            return R.success(list);
+//        }
 
 
         LambdaQueryWrapper<Setmeal> queryWrapper=new LambdaQueryWrapper<>();
@@ -118,7 +122,7 @@ public class SetmealController {
 
         list=setmealService.list(queryWrapper);
 
-        redisTemplate.opsForValue().set(key,list);
+//        redisTemplate.opsForValue().set(key,list);
         return R.success(list);
     }
 }
